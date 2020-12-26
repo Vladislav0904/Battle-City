@@ -1,0 +1,31 @@
+{
+  "button": {
+    "colours": {
+      "normal_bg": "#000000",
+      "hovered_bg": "#000000",
+      "disabled_bg": "#000000",
+      "selected_bg": "#000000",
+      "active_bg": "#000000",
+      "normal_text": "#FFFFFF",
+      "hovered_text": "#FFFFFF",
+      "selected_text": "#FFFFFF",
+      "disabled_text": "#FFFFFF",
+      "active_text": "#6d736f",
+      "normal_border": "#000000",
+      "hovered_border": "#000000",
+      "disabled_border": "#000000",
+      "selected_border": "#000000",
+      "active_border": "#000000"
+    },
+    "font": {
+      "name": "Pixel Emulator",
+      "size": "26",
+      "bold": "0",
+      "italic": "0",
+      "regular_path": "data/fonts/PixelEmulator-xq08.ttf",
+      "bold_path": "data/fonts/PixelEmulator-xq08.ttf",
+      "italic_path": "data/fonts/PixelEmulator-xq08.ttf",
+      "bold_italic_path": "data/fonts/PixelEmulator-xq08.ttf"
+    }
+  }
+}
