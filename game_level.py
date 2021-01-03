@@ -113,13 +113,13 @@ def game():
         if move_right:
             player.rect.x += 4
             player.image = pygame.transform.rotate(player_image, -90)
-        if move_left:
+        elif move_left:
             player.rect.x -= 4
             player.image = pygame.transform.rotate(player_image, 90)
-        if move_up:
+        elif move_up:
             player.rect.y -= 4
             player.image = player_image
-        if move_down:
+        elif move_down:
             player.rect.y += 4
             player.image = pygame.transform.rotate(player_image, 180)
         all_sprites.draw(screen)
