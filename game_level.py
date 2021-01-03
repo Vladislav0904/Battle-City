@@ -42,6 +42,7 @@ def game():
             self.image = tile_images[tile_type]
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x, tile_height * pos_y)
+            self.mask = pygame.mask.from_surface(self.image)
 
     class Player(pygame.sprite.Sprite):
         def __init__(self, pos_x, pos_y):
@@ -49,6 +50,25 @@ def game():
             self.image = player_image
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x + 15, tile_height * pos_y + 5)
+            self.mask = pygame.mask.from_surface(self.image)
+
+        def update(self):
+            for i in tiles_group:
+                if str(i.image) == '<Surface(48x24x32 SW)>' and pygame.sprite.collide_mask(self, i):
+                    print(1)
+                    if abs(i.rect.top - self.rect.bottom) < 5:
+                        print(1)
+                        return 'down'
+                    if abs(i.rect.bottom - self.rect.top) < 5:
+                        print(2)
+                        return 'up'
+                    if abs(i.rect.right - self.rect.left) < 5:
+                        print(3)
+                        return 'left'
+                    if abs(i.rect.left - self.rect.right) < 5:
+                        print(4)
+                        return 'right'
+            return True
 
     def generate_level(level):
         new_player, x, y = None, None, None
@@ -110,16 +130,16 @@ def game():
                     move_up = False
                 if not keys[pygame.K_DOWN]:
                     move_down = False
-        if move_right:
+        if move_right and player.update() != 'right':
             player.rect.x += 4
             player.image = pygame.transform.rotate(player_image, -90)
-        elif move_left:
+        elif move_left and player.update() != 'left':
             player.rect.x -= 4
             player.image = pygame.transform.rotate(player_image, 90)
-        elif move_up:
+        elif move_up and player.update() != 'up':
             player.rect.y -= 4
             player.image = player_image
-        elif move_down:
+        elif move_down and player.update() != 'down':
             player.rect.y += 4
             player.image = pygame.transform.rotate(player_image, 180)
         all_sprites.draw(screen)
