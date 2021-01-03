@@ -50,22 +50,6 @@ def game():
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x + 15, tile_height * pos_y + 5)
 
-    class Camera:
-        # зададим начальный сдвиг камеры
-        def __init__(self):
-            self.dx = 0
-            self.dy = 0
-
-        # сдвинуть объект obj на смещение камеры
-        def apply(self, obj):
-            obj.rect.x += self.dx
-            obj.rect.y += self.dy
-
-        # позиционировать камеру на объекте target
-        def update(self, target):
-            self.dx = -(target.rect.x + target.rect.w // 2 - width // 2)
-            self.dy = -(target.rect.y + target.rect.h // 2 - height // 2)
-
     def generate_level(level):
         new_player, x, y = None, None, None
         for y in range(len(level)):
@@ -96,7 +80,6 @@ def game():
     player_group = pygame.sprite.Group()
 
     player, level_x, level_y = generate_level(load_level('map.txt'))
-    camera = Camera()
     clock = pygame.time.Clock()
     move_left = False
     move_right = False
@@ -129,19 +112,16 @@ def game():
                     move_down = False
         if move_right:
             player.rect.x += 4
+            player.image = pygame.transform.rotate(player_image, -90)
         if move_left:
             player.rect.x -= 4
+            player.image = pygame.transform.rotate(player_image, 90)
         if move_up:
             player.rect.y -= 4
+            player.image = player_image
         if move_down:
             player.rect.y += 4
-
-        # изменяем ракурс камеры
-        # camera.update(player)
-        # обновляем положение всех спрайтов
-        # for sprite in all_sprites:
-        #    camera.apply(sprite)
-        # camera.apply(player)
+            player.image = pygame.transform.rotate(player_image, 180)
         all_sprites.draw(screen)
         player_group.draw(screen)
         pygame.display.flip()
