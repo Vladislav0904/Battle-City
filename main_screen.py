@@ -2,6 +2,7 @@ import pygame
 import pygame_gui
 import sys
 import os
+from game_level import game
 
 pygame.init()
 width = 800
@@ -48,6 +49,7 @@ def load_main_menu(screen):
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == f_player_btn:
                         print('debug btn output 1')
+                        game()
                     if event.ui_element == s_player_btn:
                         print('debug btn output 2')
                     if event.ui_element == construct_btn:
