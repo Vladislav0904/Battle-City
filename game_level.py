@@ -98,19 +98,44 @@ def game():
     player, level_x, level_y = generate_level(load_level('map.txt'))
     camera = Camera()
     clock = pygame.time.Clock()
+    move_left = False
+    move_right = False
+    move_up = False
+    move_down = False
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
-                    player.rect.x += 12
-                if event.key == pygame.K_LEFT:
-                    player.rect.x -= 12
-                if event.key == pygame.K_UP:
-                    player.rect.y -= 12
-                if event.key == pygame.K_DOWN:
-                    player.rect.y += 12
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_RIGHT]:
+                    move_right = True
+                if keys[pygame.K_LEFT]:
+                    move_left = True
+                if keys[pygame.K_UP]:
+                    move_up = True
+                if keys[pygame.K_DOWN]:
+                    move_down = True
+            elif event.type == pygame.KEYUP:
+                keys = pygame.key.get_pressed()
+                if not keys[pygame.K_RIGHT]:
+                    move_right = False
+                if not keys[pygame.K_LEFT]:
+                    move_left = False
+                if not keys[pygame.K_UP]:
+                    move_up = False
+                if not keys[pygame.K_DOWN]:
+                    move_down = False
+        if move_right:
+            player.rect.x += 4
+        if move_left:
+            player.rect.x -= 4
+        if move_up:
+            player.rect.y -= 4
+        if move_down:
+            player.rect.y += 4
+
         # изменяем ракурс камеры
         # camera.update(player)
         # обновляем положение всех спрайтов
