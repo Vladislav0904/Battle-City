@@ -35,6 +35,12 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
+def load_sound(filename):
+    filename = os.path.join('data/sounds', filename)
+    sound = pygame.mixer.Sound(filename)
+    return sound
+
+
 def game():
     direction = 'up'
     last = 1
@@ -150,14 +156,14 @@ def game():
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
-
     player, level_x, level_y = generate_level(load_level('map.txt'))
     clock = pygame.time.Clock()
     move_left = False
     move_right = False
     move_up = False
     move_down = False
-
+    move = load_sound('player_move.wav')
+    move.set_volume(0.3)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -170,6 +176,9 @@ def game():
                     if now - last >= cooldown:
                         last = now
                         Bullet(player.rect.x, player.rect.y, direction)
+                        shot = load_sound('shot.wav')
+                        shot.play()
+
                 if keys[pygame.K_RIGHT]:
                     move_right = True
                 if keys[pygame.K_LEFT]:
@@ -188,6 +197,10 @@ def game():
                     move_up = False
                 if not keys[pygame.K_DOWN]:
                     move_down = False
+        # if move_right or move_left or move_down or move_up: # do not delete - beta movement sound
+        #     move.play()
+        # else:
+        #     move.fadeout(400)
         if move_right and player.update() != 'right':
             player.rect.x += 4
             player.image = pygame.transform.rotate(player_image, -90)
