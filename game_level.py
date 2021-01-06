@@ -36,10 +36,15 @@ def load_level(filename):
 
 
 def game():
+    direction = 'up'
+
     class Tile(pygame.sprite.Sprite):
         def __init__(self, tile_type, pos_x, pos_y):
             super().__init__(tiles_group, all_sprites)
+            self.tile_type = tile_type
             self.image = tile_images[tile_type]
+            self.x = pos_x
+            self.y = pos_y
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x, tile_height * pos_y)
             self.mask = pygame.mask.from_surface(self.image)
@@ -54,21 +59,59 @@ def game():
 
         def update(self):
             for i in tiles_group:
-                if str(i.image) == '<Surface(48x24x32 SW)>' and pygame.sprite.collide_mask(self, i):
+                if str(i.tile_type) == 'wall' and pygame.sprite.collide_mask(self, i):
                     print(1)
-                    if abs(i.rect.top - self.rect.bottom) < 5:
+                    if abs(i.rect.top - self.rect.bottom) < 10:
                         print(1)
                         return 'down'
-                    if abs(i.rect.bottom - self.rect.top) < 5:
+                    if abs(i.rect.bottom - self.rect.top) < 10:
                         print(2)
                         return 'up'
-                    if abs(i.rect.right - self.rect.left) < 5:
+                    if abs(i.rect.right - self.rect.left) < 10:
                         print(3)
                         return 'left'
-                    if abs(i.rect.left - self.rect.right) < 5:
+                    if abs(i.rect.left - self.rect.right) < 10:
                         print(4)
                         return 'right'
             return True
+
+    class Bullet(pygame.sprite.Sprite):
+        def __init__(self, x, y, direct):
+            super().__init__(all_sprites)
+            self.direction = direction
+            self.speed = 5
+            self.image = pygame.Surface((3, 8))
+            self.image.fill(pygame.Color('gray'))
+            self.rect = self.image.get_rect()
+            if self.direction == 'up':
+                self.rect = self.rect.move(x + 10, y)
+            elif self.direction == 'down':
+                self.rect = self.rect.move(x + 10, y + 20)
+                self.image = pygame.transform.rotate(self.image, 180)
+            elif self.direction == 'right':
+                self.rect = self.rect.move(x + 20, y + 10)
+                self.image = pygame.transform.rotate(self.image, -90)
+            elif self.direction == 'left':
+                self.rect = self.rect.move(x - 20, y + 10)
+                self.image = pygame.transform.rotate(self.image, 90)
+            self.mask = pygame.mask.from_surface(self.image)
+
+        def update(self):
+            if self.direction == 'up':
+                self.rect.y -= self.speed
+            elif self.direction == 'down':
+                self.rect.y += self.speed
+            elif self.direction == 'right':
+                self.rect.x += self.speed
+            elif self.direction == 'left':
+                self.rect.x -= self.speed
+            for i in tiles_group:
+                if str(i.tile_type) == 'wall' and pygame.sprite.collide_mask(self, i):
+                    self.kill()
+                    Tile('empty_small', i.x, i.y)
+                    i.kill()
+            if self.rect.y < -10:
+                self.kill()
 
     def generate_level(level):
         new_player, x, y = None, None, None
@@ -86,7 +129,8 @@ def game():
 
     tile_images = {
         'wall': load_image('brick2.png'),
-        'empty': load_image('empty.png')
+        'empty': load_image('empty.png'),
+        'empty_small': load_image('empty_small.png')
     }
     player_image = load_image('player_tank.png')
 
@@ -112,6 +156,8 @@ def game():
                 terminate()
             elif event.type == pygame.KEYDOWN:
                 keys = pygame.key.get_pressed()
+                if keys[pygame.K_SPACE]:
+                    Bullet(player.rect.x, player.rect.y, direction)
                 if keys[pygame.K_RIGHT]:
                     move_right = True
                 if keys[pygame.K_LEFT]:
@@ -133,16 +179,22 @@ def game():
         if move_right and player.update() != 'right':
             player.rect.x += 4
             player.image = pygame.transform.rotate(player_image, -90)
+            direction = 'right'
         elif move_left and player.update() != 'left':
             player.rect.x -= 4
             player.image = pygame.transform.rotate(player_image, 90)
+            direction = 'left'
         elif move_up and player.update() != 'up':
             player.rect.y -= 4
             player.image = player_image
+            direction = 'up'
         elif move_down and player.update() != 'down':
             player.rect.y += 4
             player.image = pygame.transform.rotate(player_image, 180)
+            direction = 'down'
+
         all_sprites.draw(screen)
+        all_sprites.update()
         player_group.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
@@ -152,5 +204,3 @@ pygame.init()
 FPS = 30
 size = width, height = 816, 624
 screen = pygame.display.set_mode(size)
-# pygame.display.set_caption('Battle City')
-# game()
