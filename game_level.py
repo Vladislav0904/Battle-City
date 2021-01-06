@@ -37,6 +37,7 @@ def load_level(filename):
 
 def game():
     direction = 'up'
+    last = 1
 
     class Tile(pygame.sprite.Sprite):
         def __init__(self, tile_type, pos_x, pos_y):
@@ -59,7 +60,8 @@ def game():
 
         def update(self):
             for i in tiles_group:
-                if str(i.tile_type) == 'wall' and pygame.sprite.collide_mask(self, i):
+                if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor') \
+                        and pygame.sprite.collide_mask(self, i):
                     print(1)
                     if abs(i.rect.top - self.rect.bottom) < 10:
                         print(1)
@@ -110,6 +112,9 @@ def game():
                     self.kill()
                     Tile('empty_small', i.x, i.y)
                     i.kill()
+                elif str(i.tile_type) != 'empty' and str(i.tile_type) != 'empty_small' \
+                        and pygame.sprite.collide_mask(self, i):
+                    self.kill()
             if self.rect.y < -10:
                 self.kill()
 
@@ -121,6 +126,8 @@ def game():
                     Tile('empty', x, y)
                 elif level[y][x] == '#':
                     Tile('wall', x, y)
+                elif level[y][x] == '*':
+                    Tile('armor', x, y)
                 elif level[y][x] == '@':
                     Tile('empty', x, y)
                     new_player = Player(x, y)
@@ -130,7 +137,8 @@ def game():
     tile_images = {
         'wall': load_image('brick2.png'),
         'empty': load_image('empty.png'),
-        'empty_small': load_image('empty_small.png')
+        'empty_small': load_image('empty_small.png'),
+        'armor': load_image('mesh.png')
     }
     player_image = load_image('player_tank.png')
 
@@ -157,7 +165,11 @@ def game():
             elif event.type == pygame.KEYDOWN:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
-                    Bullet(player.rect.x, player.rect.y, direction)
+                    cooldown = 1000
+                    now = pygame.time.get_ticks()
+                    if now - last >= cooldown:
+                        last = now
+                        Bullet(player.rect.x, player.rect.y, direction)
                 if keys[pygame.K_RIGHT]:
                     move_right = True
                 if keys[pygame.K_LEFT]:
