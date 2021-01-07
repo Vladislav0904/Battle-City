@@ -10,6 +10,7 @@ height = 600
 FPS = 60
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
+pygame.display.set_caption('Battle City')
 
 
 def terminate():
