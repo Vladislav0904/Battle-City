@@ -117,11 +117,40 @@ def game():
                 if str(i.tile_type) == 'wall' and pygame.sprite.collide_mask(self, i):
                     self.kill()
                     Tile('empty_small', i.x, i.y)
+                    explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
                     i.kill()
                 elif str(i.tile_type) != 'empty' and str(i.tile_type) != 'empty_small' \
                         and pygame.sprite.collide_mask(self, i):
                     self.kill()
+                    explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
             if self.rect.y < -10:
+                self.kill()
+
+    class AnimatedSprite(pygame.sprite.Sprite):
+        def __init__(self, sheet, columns, rows, x, y):
+            super().__init__(all_sprites)
+            self.frames = []
+            self.cut_sheet(sheet, columns, rows)
+            self.cur_frame = 0
+            self.image = self.frames[self.cur_frame]
+            self.rect = self.rect.move(x, y)
+            self.counter = 1
+
+        def cut_sheet(self, sheet, columns, rows):
+            self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                    sheet.get_height() // rows)
+            for j in range(rows):
+                for i in range(columns):
+                    frame_location = (self.rect.w * i, self.rect.h * j)
+                    self.frames.append(sheet.subsurface(pygame.Rect(
+                        frame_location, self.rect.size)))
+
+        def update(self):
+            if self.counter <= 3:
+                self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+                self.image = self.frames[self.cur_frame]
+                self.counter += 1
+            else:
                 self.kill()
 
     def generate_level(level):
@@ -217,7 +246,6 @@ def game():
             player.rect.y += 4
             player.image = pygame.transform.rotate(player_image, 180)
             direction = 'down'
-
         all_sprites.draw(screen)
         all_sprites.update()
         player_group.draw(screen)
