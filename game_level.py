@@ -119,6 +119,12 @@ def game():
                     Tile('empty_small', i.x, i.y)
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
                     i.kill()
+                elif str(i.tile_type) == 'fort' and pygame.sprite.collide_mask(self, i):
+                    self.kill()
+                    # Tile('empty_small', i.x, i.y)
+                    print('game over')
+                    explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
+                    i.kill()
                 elif str(i.tile_type) != 'empty' and str(i.tile_type) != 'empty_small' \
                         and pygame.sprite.collide_mask(self, i):
                     self.kill()
@@ -166,6 +172,8 @@ def game():
                 elif level[y][x] == '@':
                     Tile('empty', x, y)
                     new_player = Player(x, y)
+                elif level[y][x] == '!':
+                    Tile('fort', x, y)
         # вернем игрока, а также размер поля в клетках
         return new_player, x, y
 
@@ -173,7 +181,8 @@ def game():
         'wall': load_image('brick2.png'),
         'empty': load_image('empty.png'),
         'empty_small': load_image('empty_small.png'),
-        'armor': load_image('mesh.png')
+        'armor': load_image('mesh.png'),
+        'fort': load_image('fort.png')
     }
     player_image = load_image('player_tank.png')
 
