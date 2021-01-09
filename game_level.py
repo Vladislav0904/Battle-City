@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+import random
 
 
 def terminate():
@@ -83,6 +84,14 @@ def game():
                         return 'right'
             return True
 
+    class Enemy(pygame.sprite.Sprite):
+        def __init__(self, pos_x, pos_y):
+            super().__init__(player_group, all_sprites)
+            self.image = enemy_image
+            self.rect = self.image.get_rect().move(
+                tile_width * pos_x + 15, tile_height * pos_y + 5)
+            self.mask = pygame.mask.from_surface(self.image)
+
     class Bullet(pygame.sprite.Sprite):
         def __init__(self, x, y, direct):
             super().__init__(all_sprites)
@@ -159,6 +168,14 @@ def game():
             else:
                 self.kill()
 
+    def spawn_enemy(start_ticks):
+        seconds = (pygame.time.get_ticks() - start_ticks) / 1000
+        if seconds > 5:
+            Enemy(0, 0)
+            print('hi')
+            start_ticks = pygame.time.get_ticks()
+        return start_ticks
+
     def generate_level(level):
         new_player, x, y = None, None, None
         for y in range(len(level)):
@@ -174,6 +191,7 @@ def game():
                     new_player = Player(x, y)
                 elif level[y][x] == '!':
                     Tile('fort', x, y)
+
         # вернем игрока, а также размер поля в клетках
         return new_player, x, y
 
@@ -185,12 +203,14 @@ def game():
         'fort': load_image('fort.png')
     }
     player_image = load_image('player_tank.png')
+    enemy_image = load_image('enemy_tank.png')
 
     tile_width, tile_height = 48, 24
     # основной персонаж
     player = None
 
     # группы спрайтов
+    start_ticks = pygame.time.get_ticks()
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
@@ -200,6 +220,7 @@ def game():
     move_right = False
     move_up = False
     move_down = False
+    i = 1
     move = load_sound('player_move.wav')
     move.set_volume(0.3)
     while True:
@@ -216,7 +237,6 @@ def game():
                         Bullet(player.rect.x, player.rect.y, direction)
                         shot = load_sound('shot.wav')
                         shot.play()
-
                 if keys[pygame.K_RIGHT]:
                     move_right = True
                 if keys[pygame.K_LEFT]:
@@ -235,10 +255,13 @@ def game():
                     move_up = False
                 if not keys[pygame.K_DOWN]:
                     move_down = False
-        # if move_right or move_left or move_down or move_up: # do not delete - beta movement sound
-        #     move.play()
-        # else:
-        #     move.fadeout(400)
+        if move_right or move_left or move_down or move_up:
+            if i <= 1:
+                move.play()
+                i += 1
+        else:
+            move.stop()
+            i = 1
         if move_right and player.update() != 'right':
             player.rect.x += 4
             player.image = pygame.transform.rotate(player_image, -90)
@@ -255,6 +278,7 @@ def game():
             player.rect.y += 4
             player.image = pygame.transform.rotate(player_image, 180)
             direction = 'down'
+        start_ticks = spawn_enemy(start_ticks)
         all_sprites.draw(screen)
         all_sprites.update()
         player_group.draw(screen)
