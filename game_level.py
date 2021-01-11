@@ -47,9 +47,15 @@ def load_sound(filename):
     return sound
 
 
-def game():
+def game(players=1):
     direction = 'up'
+    direction2 = 'up'
     last = 1
+    last2 = 1
+    if players == 1:
+        coop = False
+    elif players == 2:
+        coop = True
 
     class Tile(pygame.sprite.Sprite):
         def __init__(self, tile_type, pos_x, pos_y):
@@ -103,7 +109,7 @@ def game():
     class Bullet(pygame.sprite.Sprite):
         def __init__(self, x, y, direct):
             super().__init__(all_sprites)
-            self.direction = direction
+            self.direction = direct
             self.speed = 5
             self.image = pygame.Surface((3, 8))
             self.image.fill(pygame.Color('gray'))
@@ -189,6 +195,7 @@ def game():
 
     def generate_level(level):
         new_player, x, y = None, None, None
+        second_player = None
         for y in range(len(level)):
             for x in range(len(level[y])):
                 if level[y][x] == '.':
@@ -200,11 +207,15 @@ def game():
                 elif level[y][x] == '@':
                     Tile('empty', x, y)
                     new_player = Player(x, y)
+                elif level[y][x] == '/':
+                    Tile('empty', x, y)
+                    if coop:
+                        second_player = Player(x, y)
                 elif level[y][x] == '!':
                     Tile('fort', x, y)
 
         # вернем игрока, а также размер поля в клетках
-        return new_player, x, y
+        return new_player, x, y, second_player
 
     tile_images = {
         'wall': load_image('brick2.png'),
@@ -219,6 +230,7 @@ def game():
     tile_width, tile_height = 48, 24
     # основной персонаж
     player = None
+    player2 = None
 
     # группы спрайтов
     start_ticks = pygame.time.get_ticks()
@@ -226,12 +238,16 @@ def game():
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
-    player, level_x, level_y = generate_level(load_level('map.txt'))
+    player, level_x, level_y, player2 = generate_level(load_level('map.txt'))
     clock = pygame.time.Clock()
     move_left = False
     move_right = False
     move_up = False
     move_down = False
+    move_left2 = False
+    move_right2 = False
+    move_up2 = False
+    move_down2 = False
     i = 1
     move = load_sound('player_move.wav')
     move.set_volume(0.3)
@@ -267,6 +283,32 @@ def game():
                     move_up = False
                 if not keys[pygame.K_DOWN]:
                     move_down = False
+            elif coop:
+                if event.type == pygame.JOYAXISMOTION:
+                    if pygame.joystick.Joystick(0).get_axis(0) > 0.5:
+                        move_right2 = True
+                    elif pygame.joystick.Joystick(0).get_axis(0) < -0.5:
+                        move_left2 = True
+                    else:
+                        move_left2 = False
+                        move_right2 = False
+                    if pygame.joystick.Joystick(0).get_axis(1) > 0.5:
+                        move_down2 = True
+                    elif pygame.joystick.Joystick(0).get_axis(1) < -0.5:
+                        move_up2 = True
+                    else:
+                        move_up2 = False
+                        move_down2 = False
+                elif event.type == pygame.JOYBUTTONDOWN:
+                    if pygame.joystick.Joystick(0).get_button(1):
+                        cooldown2 = 1000
+                        now2 = pygame.time.get_ticks()
+                        if now2 - last2 >= cooldown2:
+                            last2 = now2
+                            Bullet(player2.rect.x, player2.rect.y, direction2)
+                            shot = load_sound('shot.wav')
+                            shot.play()
+
         if move_right or move_left or move_down or move_up:
             if i <= 1:
                 move.play()
@@ -290,6 +332,23 @@ def game():
             player.rect.y += 4
             player.image = pygame.transform.rotate(player_image, 180)
             direction = 'down'
+        if coop:
+            if move_right2 and player2.update() != 'right':
+                player2.rect.x += 4
+                player2.image = pygame.transform.rotate(player_image, -90)
+                direction2 = 'right'
+            elif move_left2 and player2.update() != 'left':
+                player2.rect.x -= 4
+                player2.image = pygame.transform.rotate(player_image, 90)
+                direction2 = 'left'
+            elif move_up2 and player2.update() != 'up':
+                player2.rect.y -= 4
+                player2.image = player_image
+                direction2 = 'up'
+            elif move_down2 and player2.update() != 'down':
+                player2.rect.y += 4
+                player2.image = pygame.transform.rotate(player_image, 180)
+                direction2 = 'down'
         start_ticks = spawn_enemy(start_ticks)
         all_sprites.draw(screen)
         all_sprites.update()
@@ -302,3 +361,6 @@ pygame.init()
 FPS = 30
 size = width, height = 816, 624
 screen = pygame.display.set_mode(size)
+pygame.joystick.init()
+joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+pygame.event.pump()
