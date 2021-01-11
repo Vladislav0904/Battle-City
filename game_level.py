@@ -2,11 +2,16 @@ import pygame
 import os
 import sys
 import random
+from game_over import game_over
 
 
 def terminate():
     pygame.quit()
     sys.exit()
+
+
+def game_is_over():
+    game_over()
 
 
 def load_image(name, color_key=None):
@@ -86,11 +91,14 @@ def game():
 
     class Enemy(pygame.sprite.Sprite):
         def __init__(self, pos_x, pos_y):
-            super().__init__(player_group, all_sprites)
+            super().__init__(enemy_group, all_sprites)
             self.image = enemy_image
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x + 15, tile_height * pos_y + 5)
             self.mask = pygame.mask.from_surface(self.image)
+
+        def update(self):
+            pass
 
     class Bullet(pygame.sprite.Sprite):
         def __init__(self, x, y, direct):
@@ -131,9 +139,9 @@ def game():
                 elif str(i.tile_type) == 'fort' and pygame.sprite.collide_mask(self, i):
                     self.kill()
                     # Tile('empty_small', i.x, i.y)
-                    print('game over')
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
                     i.kill()
+                    game_over()
                 elif str(i.tile_type) != 'empty' and str(i.tile_type) != 'empty_small' \
                         and pygame.sprite.collide_mask(self, i):
                     self.kill()
@@ -171,7 +179,10 @@ def game():
     def spawn_enemy(start_ticks):
         seconds = (pygame.time.get_ticks() - start_ticks) / 1000
         if seconds > 5:
-            Enemy(0, 0)
+            if random.randint(1, 2) == 1:
+                Enemy(0, 0)
+            else:
+                Enemy(50, 50)
             print('hi')
             start_ticks = pygame.time.get_ticks()
         return start_ticks
@@ -214,6 +225,7 @@ def game():
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
+    enemy_group = pygame.sprite.Group()
     player, level_x, level_y = generate_level(load_level('map.txt'))
     clock = pygame.time.Clock()
     move_left = False
