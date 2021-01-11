@@ -124,6 +124,15 @@ def game():
             if self.rect.y < -10:
                 self.kill()
 
+    class Enemy(pygame.sprite.Sprite):
+        def __init__(self, pos_x, pos_y):
+            super().__init__(player_group, all_sprites)
+            self.pos_x = 1
+            self.pos_y = 1
+            self.image = player_image
+            self.rect = self.image.get_rect().move(
+                tile_width * pos_x, tile_height * pos_y)
+
     def generate_level(level):
         new_player, x, y = None, None, None
         for y in range(len(level)):
@@ -162,6 +171,7 @@ def game():
     move_right = False
     move_up = False
     move_down = False
+    enemy = Enemy(1, 1)
     move = load_sound('player_move.wav')
     move.set_volume(0.3)
     while True:
