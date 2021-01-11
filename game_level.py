@@ -4,6 +4,8 @@ import sys
 import random
 from game_over import game_over
 
+global on_cool_down
+
 
 def terminate():
     pygame.quit()
@@ -75,6 +77,7 @@ def game(players=1):
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x + 15, tile_height * pos_y + 5)
             self.mask = pygame.mask.from_surface(self.image)
+            self.cool_down = False
 
         def update(self):
             for i in tiles_group:
@@ -95,20 +98,10 @@ def game(players=1):
                         return 'right'
             return True
 
-    class Enemy(pygame.sprite.Sprite):
-        def __init__(self, pos_x, pos_y):
-            super().__init__(enemy_group, all_sprites)
-            self.image = enemy_image
-            self.rect = self.image.get_rect().move(
-                tile_width * pos_x + 15, tile_height * pos_y + 5)
-            self.mask = pygame.mask.from_surface(self.image)
-
-        def update(self):
-            pass
-
     class Bullet(pygame.sprite.Sprite):
-        def __init__(self, x, y, direct):
+        def __init__(self, x, y, direct, sender):
             super().__init__(all_sprites)
+            self.sender = sender
             self.direction = direct
             self.speed = 5
             self.image = pygame.Surface((3, 8))
@@ -128,6 +121,7 @@ def game(players=1):
             self.mask = pygame.mask.from_surface(self.image)
 
         def update(self):
+            global on_cool_down
             if self.direction == 'up':
                 self.rect.y -= self.speed
             elif self.direction == 'down':
@@ -136,24 +130,42 @@ def game(players=1):
                 self.rect.x += self.speed
             elif self.direction == 'left':
                 self.rect.x -= self.speed
+
             for i in tiles_group:
                 if str(i.tile_type) == 'wall' and pygame.sprite.collide_mask(self, i):
                     self.kill()
+                    if self.sender == 1:
+                        player.cool_down = False
+                    elif self.sender == 2:
+                        player2.cool_down = False
                     Tile('empty_small', i.x, i.y)
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
                     i.kill()
                 elif str(i.tile_type) == 'fort' and pygame.sprite.collide_mask(self, i):
                     self.kill()
+                    if self.sender == 1:
+                        player.cool_down = False
+                    elif self.sender == 2:
+                        player2.cool_down = False
                     # Tile('empty_small', i.x, i.y)
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
                     i.kill()
                     game_over()
+                    if self.sender == 1:
+                        player.cool_down = False
+                    elif self.sender == 2:
+                        player2.cool_down = False
                 elif str(i.tile_type) != 'empty' and str(i.tile_type) != 'empty_small' \
                         and pygame.sprite.collide_mask(self, i):
                     self.kill()
+                    player.cool_down = False
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
-            if self.rect.y < -10:
+            if self.rect.y < -10 or self.rect.x < -10 or self.rect.x > 850 or self.rect.y > 650:
                 self.kill()
+                if self.sender == 1:
+                    player.cool_down = False
+                elif self.sender == 2:
+                    player2.cool_down = False
 
     class AnimatedSprite(pygame.sprite.Sprite):
         def __init__(self, sheet, columns, rows, x, y):
@@ -181,17 +193,6 @@ def game(players=1):
                 self.counter += 1
             else:
                 self.kill()
-
-    def spawn_enemy(start_ticks):
-        seconds = (pygame.time.get_ticks() - start_ticks) / 1000
-        if seconds > 5:
-            if random.randint(1, 2) == 1:
-                Enemy(0, 0)
-            else:
-                Enemy(50, 50)
-            print('hi')
-            start_ticks = pygame.time.get_ticks()
-        return start_ticks
 
     def generate_level(level):
         new_player, x, y = None, None, None
@@ -258,13 +259,11 @@ def game(players=1):
             elif event.type == pygame.KEYDOWN:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
-                    cooldown = 1000
-                    now = pygame.time.get_ticks()
-                    if now - last >= cooldown:
-                        last = now
-                        Bullet(player.rect.x, player.rect.y, direction)
+                    if not player.cool_down:
+                        Bullet(player.rect.x, player.rect.y, direction, 1)
                         shot = load_sound('shot.wav')
                         shot.play()
+                        player.cool_down = True
                 if keys[pygame.K_RIGHT]:
                     move_right = True
                 if keys[pygame.K_LEFT]:
@@ -301,13 +300,11 @@ def game(players=1):
                         move_down2 = False
                 elif event.type == pygame.JOYBUTTONDOWN:
                     if pygame.joystick.Joystick(0).get_button(1):
-                        cooldown2 = 1000
-                        now2 = pygame.time.get_ticks()
-                        if now2 - last2 >= cooldown2:
-                            last2 = now2
-                            Bullet(player2.rect.x, player2.rect.y, direction2)
+                        if not player2.cool_down:
+                            Bullet(player2.rect.x, player2.rect.y, direction2, 2)
                             shot = load_sound('shot.wav')
                             shot.play()
+                            player2.cool_down = True
 
         if move_right or move_left or move_down or move_up:
             if i <= 1:
@@ -349,7 +346,6 @@ def game(players=1):
                 player2.rect.y += 4
                 player2.image = pygame.transform.rotate(player_image, 180)
                 direction2 = 'down'
-        start_ticks = spawn_enemy(start_ticks)
         all_sprites.draw(screen)
         all_sprites.update()
         player_group.draw(screen)
