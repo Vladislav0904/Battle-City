@@ -52,6 +52,7 @@ def load_main_menu(screen):
                         print('debug btn outpu  t 1')
                         game()
                     if event.ui_element == s_player_btn:
+                        game(2)
                         print('debug btn output 2')
                     if event.ui_element == construct_btn:
                         print('debug btn output 3')
