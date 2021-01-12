@@ -4,8 +4,6 @@ import sys
 import random
 from game_over import game_over
 
-global on_cool_down
-
 
 def terminate():
     pygame.quit()
@@ -194,6 +192,15 @@ def game(players=1):
             else:
                 self.kill()
 
+    class Enemy(pygame.sprite.Sprite):
+        def __init__(self, pos_x, pos_y):
+            super().__init__(player_group, all_sprites)
+            self.pos_x = 1
+            self.pos_y = 1
+            self.image = player_image
+            self.rect = self.image.get_rect().move(
+                tile_width * pos_x, tile_height * pos_y)
+
     def generate_level(level):
         new_player, x, y = None, None, None
         second_player = None
@@ -245,6 +252,7 @@ def game(players=1):
     move_right = False
     move_up = False
     move_down = False
+    enemy = Enemy(1, 1)
     move_left2 = False
     move_right2 = False
     move_up2 = False
