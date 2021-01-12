@@ -197,7 +197,7 @@ def game(players=1):
             super().__init__(player_group, all_sprites)
             self.pos_x = 1
             self.pos_y = 1
-            self.image = player_image
+            self.image = enemy_image
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x, tile_height * pos_y)
 
@@ -252,7 +252,7 @@ def game(players=1):
     move_right = False
     move_up = False
     move_down = False
-    enemy = Enemy(1, 1)
+    enemy = Enemy(6, 1)
     move_left2 = False
     move_right2 = False
     move_up2 = False
