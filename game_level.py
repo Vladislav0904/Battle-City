@@ -33,7 +33,6 @@ def load_level(filename):
     # читаем уровень, убирая символы перевода строки
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
-
     # и подсчитываем максимальную длину
     max_width = max(map(len, level_map))
 
@@ -48,10 +47,11 @@ def load_sound(filename):
 
 
 def game(players=1):
+    global start1
+    global start2
     direction = 'up'
     direction2 = 'up'
     last = 1
-    last2 = 1
     if players == 1:
         coop = False
     elif players == 2:
@@ -76,25 +76,27 @@ def game(players=1):
                 tile_width * pos_x + 15, tile_height * pos_y + 5)
             self.mask = pygame.mask.from_surface(self.image)
             self.cool_down = False
+            self.lives = 3
 
         def update(self):
+            collided = []
             for i in tiles_group:
                 if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor') \
                         and pygame.sprite.collide_mask(self, i):
                     print(1)
-                    if abs(i.rect.top - self.rect.bottom) < 10:
+                    if abs(i.rect.top - self.rect.bottom) < 5:
                         print(1)
-                        return 'down'
-                    if abs(i.rect.bottom - self.rect.top) < 10:
+                        collided.append('down')
+                    if abs(i.rect.bottom - self.rect.top) < 5:
                         print(2)
-                        return 'up'
-                    if abs(i.rect.right - self.rect.left) < 10:
+                        collided.append('up')
+                    if abs(i.rect.right - self.rect.left) < 5:
                         print(3)
-                        return 'left'
-                    if abs(i.rect.left - self.rect.right) < 10:
+                        collided.append('left')
+                    if abs(i.rect.left - self.rect.right) < 5:
                         print(4)
-                        return 'right'
-            return True
+                        collided.append('right')
+            return collided
 
     class Bullet(pygame.sprite.Sprite):
         def __init__(self, x, y, direct, sender):
@@ -119,7 +121,6 @@ def game(players=1):
             self.mask = pygame.mask.from_surface(self.image)
 
         def update(self):
-            global on_cool_down
             if self.direction == 'up':
                 self.rect.y -= self.speed
             elif self.direction == 'down':
@@ -164,6 +165,23 @@ def game(players=1):
                     player.cool_down = False
                 elif self.sender == 2:
                     player2.cool_down = False
+            for i in enemy_group:
+                if pygame.sprite.collide_mask(self, i):
+                    self.kill()
+                    i.kill()
+                    player.cool_down = False
+                    explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
+                    enemy.is_dead = True
+                    if self.sender == 1:
+                        player.cool_down = False
+                    elif self.sender == 2:
+                        player2.cool_down = False
+            for i in player_group:
+                if pygame.sprite.collide_mask(self, i):
+                    print(i.lives)
+                    i.rect = i.rect.move(start1[0], start1[1])
+                    i.lives -= 1
+                    break
 
     class AnimatedSprite(pygame.sprite.Sprite):
         def __init__(self, sheet, columns, rows, x, y):
@@ -193,17 +211,22 @@ def game(players=1):
                 self.kill()
 
     class Enemy(pygame.sprite.Sprite):
-        def __init__(self, pos_x, pos_y):
-            super().__init__(player_group, all_sprites)
-            self.pos_x = 1
-            self.pos_y = 1
+        def __init__(self, pos_x, pos_y, last):
+            super().__init__(enemy_group, all_sprites)
             self.image = enemy_image
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x, tile_height * pos_y)
+            self.last = last
+            self.is_dead = False
+
+        def shoot(self):
+            if not self.is_dead:
+                Bullet(enemy.rect.x, enemy.rect.y, 'right', 3)
 
     def generate_level(level):
         new_player, x, y = None, None, None
         second_player = None
+        start_2 = None
         for y in range(len(level)):
             for x in range(len(level[y])):
                 if level[y][x] == '.':
@@ -215,15 +238,17 @@ def game(players=1):
                 elif level[y][x] == '@':
                     Tile('empty', x, y)
                     new_player = Player(x, y)
+                    start_1 = x, y
                 elif level[y][x] == '/':
                     Tile('empty', x, y)
                     if coop:
                         second_player = Player(x, y)
+                        start_2 = x, y
                 elif level[y][x] == '!':
                     Tile('fort', x, y)
 
         # вернем игрока, а также размер поля в клетках
-        return new_player, x, y, second_player
+        return new_player, x, y, second_player, start_1, start_2
 
     tile_images = {
         'wall': load_image('brick2.png'),
@@ -239,20 +264,19 @@ def game(players=1):
     # основной персонаж
     player = None
     player2 = None
-
     # группы спрайтов
     start_ticks = pygame.time.get_ticks()
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
-    player, level_x, level_y, player2 = generate_level(load_level('map.txt'))
+    player, level_x, level_y, player2, start1, start2 = generate_level(load_level('map.txt'))
     clock = pygame.time.Clock()
     move_left = False
     move_right = False
     move_up = False
     move_down = False
-    enemy = Enemy(6, 1)
+    enemy = Enemy(1, 1, last)
     move_left2 = False
     move_right2 = False
     move_up2 = False
@@ -321,39 +345,44 @@ def game(players=1):
         else:
             move.stop()
             i = 1
-        if move_right and player.update() != 'right':
+        if move_right and 'right' not in player.update():
             player.rect.x += 4
             player.image = pygame.transform.rotate(player_image, -90)
             direction = 'right'
-        elif move_left and player.update() != 'left':
+        elif move_left and 'left' not in player.update():
             player.rect.x -= 4
             player.image = pygame.transform.rotate(player_image, 90)
             direction = 'left'
-        elif move_up and player.update() != 'up':
+        elif move_up and 'up' not in player.update():
             player.rect.y -= 4
             player.image = player_image
             direction = 'up'
-        elif move_down and player.update() != 'down':
+        elif move_down and 'down' not in player.update():
             player.rect.y += 4
             player.image = pygame.transform.rotate(player_image, 180)
             direction = 'down'
         if coop:
-            if move_right2 and player2.update() != 'right':
+            if move_right2 and 'right' not in player2.update():
                 player2.rect.x += 4
                 player2.image = pygame.transform.rotate(player_image, -90)
                 direction2 = 'right'
-            elif move_left2 and player2.update() != 'left':
+            elif move_left2 and 'left' not in player2.update():
                 player2.rect.x -= 4
                 player2.image = pygame.transform.rotate(player_image, 90)
                 direction2 = 'left'
-            elif move_up2 and player2.update() != 'up':
+            elif move_up2 and 'up' not in player2.update():
                 player2.rect.y -= 4
                 player2.image = player_image
                 direction2 = 'up'
-            elif move_down2 and player2.update() != 'down':
+            elif move_down2 and 'down' not in player2.update():
                 player2.rect.y += 4
                 player2.image = pygame.transform.rotate(player_image, 180)
                 direction2 = 'down'
+        cooldown = 1000
+        now = pygame.time.get_ticks()
+        if now - enemy.last >= cooldown:
+            enemy.last = now
+            enemy.shoot()
         all_sprites.draw(screen)
         all_sprites.update()
         player_group.draw(screen)
