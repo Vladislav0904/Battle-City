@@ -38,10 +38,6 @@ def load_main_menu(screen):
         relative_rect=pygame.Rect((width // 2 - 75, 350), (150, 50)),
         text='2 PLAYER',
         manager=manager)
-    construct_btn = pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect((width // 2 - 125, height // 2 + 100), (250, 50)),
-        text='CONSTRUCTION',
-        manager=manager)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -54,8 +50,6 @@ def load_main_menu(screen):
                     if event.ui_element == s_player_btn:
                         game(2)
                         print('debug btn output 2')
-                    if event.ui_element == construct_btn:
-                        print('debug btn output 3')
             manager.process_events(event)
         manager.update(FPS / 1000)
         manager.draw_ui(screen)
