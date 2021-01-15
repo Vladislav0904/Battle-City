@@ -2,7 +2,7 @@ import pygame
 import pygame_gui
 import sys
 import os
-import game_stage
+import game_level
 
 pygame.init()
 width = 800
@@ -45,11 +45,9 @@ def load_main_menu(screen):
             if event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == f_player_btn:
-                        print('debug btn output 1')
-                        game_stage.stage_load(1, 1)
+                        game_level.game(1, 1)
                     if event.ui_element == s_player_btn:
-                        game_stage.stage_load(2, 1)
-                        print('debug btn output 2')
+                        game_level.game(2, 1)
             manager.process_events(event)
         manager.update(FPS / 1000)
         manager.draw_ui(screen)

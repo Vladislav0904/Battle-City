@@ -94,18 +94,13 @@ def game(players=1, level=1):
                 if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor'
                     or str(i.tile_type) == 'water') \
                         and pygame.sprite.collide_mask(self, i):
-                    print(1)
                     if abs(i.rect.top - self.rect.bottom) < 5:
-                        print(1)
                         collided.append('down')
                     if abs(i.rect.bottom - self.rect.top) < 5:
-                        print(2)
                         collided.append('up')
                     if abs(i.rect.right - self.rect.left) < 5:
-                        print(3)
                         collided.append('left')
                     if abs(i.rect.left - self.rect.right) < 5:
-                        print(4)
                         collided.append('right')
                 if self.rect.x >= 600:
                     collided.append('right')
@@ -169,14 +164,9 @@ def game(players=1, level=1):
                         player.cool_down = False
                     elif self.sender == 2:
                         player2.cool_down = False
-                    # Tile('empty_small', i.x, i.y)
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
                     i.kill()
                     game_over()
-                    if self.sender == 1:
-                        player.cool_down = False
-                    elif self.sender == 2:
-                        player2.cool_down = False
                 elif str(i.tile_type) != 'empty' and str(i.tile_type) != 'empty_small' \
                         and pygame.sprite.collide_mask(self, i):
                     self.kill()
@@ -265,11 +255,9 @@ def game(players=1, level=1):
         def update(self):
             collided = []
             if self.rect.x >= 600:
-                print('gay')
                 collided.append('right')
             if self.rect.x <= 0:
                 collided.append('left')
-                print('gay')
             if self.rect.y <= 0:
                 collided.append('up')
             if self.rect.y >= 585:
@@ -442,7 +430,7 @@ def game(players=1, level=1):
     player_image = load_image('player_tank.png')
     enemy_image = load_image('enemy_tank.png')
     MAX_ENEMIES = 5
-    MAX_WHOLE = 1
+    MAX_WHOLE = 15
     enemy_spawned = 0
     tile_width, tile_height = 48, 24
     # основной персонаж
@@ -455,7 +443,6 @@ def game(players=1, level=1):
     player_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
     screen.fill((0, 0, 0))
-    player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('fourth lvl.txt'))
     if level == 1:
         player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('map.txt'))
     elif level == 2:
@@ -467,7 +454,7 @@ def game(players=1, level=1):
     elif level == 5:
         player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('fifth lvl.txt'))
     else:
-        return 0
+        game_over()
     clock = pygame.time.Clock()
     move_left = False
     move_right = False
@@ -587,7 +574,6 @@ def game(players=1, level=1):
                 victory(1, level)
         cooldown1 = 5000
         now1 = pygame.time.get_ticks()
-        print(len(enemy_group))
         if now1 - last1 >= cooldown1 and len(enemy_group) < MAX_ENEMIES and enemy_spawned <= MAX_WHOLE:
             last1 = now1
             if random.randint(1, 2) == 1:
