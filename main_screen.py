@@ -45,7 +45,7 @@ def load_main_menu(screen):
             if event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == f_player_btn:
-                        print('debug btn outpu  t 1')
+                        print('debug btn output 1')
                         game()
                     if event.ui_element == s_player_btn:
                         game(2)
