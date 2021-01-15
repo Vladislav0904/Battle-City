@@ -283,6 +283,8 @@ def game(players=1):
                         start_2 = (x * 48, y * 24)
                 elif level[y][x] == '!':
                     Tile('fort', x, y)
+                elif level[x][y] == 'l':
+                    Tile('leaves', x, y)
 
         # вернем игрока, а также размер поля в клетках
         return new_player, x, y, second_player, start_1, start_2
@@ -292,7 +294,8 @@ def game(players=1):
         'empty': load_image('empty.png'),
         'empty_small': load_image('empty_small.png'),
         'armor': load_image('mesh.png'),
-        'fort': load_image('fort.png')
+        'fort': load_image('fort.png'),
+        'leaves': load_image('leaves.png')
     }
     player_image = load_image('player_tank.png')
     enemy_image = load_image('enemy_tank.png')
