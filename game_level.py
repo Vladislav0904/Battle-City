@@ -3,6 +3,7 @@ import os
 import sys
 import random
 from game_over import game_over
+import game_stage
 
 
 def terminate():
@@ -19,9 +20,8 @@ def game_is_over(pl1, pl2, multi):
             game_over()
 
 
-def victory(coop):
-    pass
-    game(coop, 2)
+def victory(coop, level):
+    game_stage.stage_load(coop, level)
 
 
 def load_image(name, color_key=None):
@@ -91,7 +91,8 @@ def game(players=1, level=1):
         def update(self):
             collided = []
             for i in tiles_group:
-                if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor') \
+                if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor'
+                    or str(i.tile_type) == 'water') \
                         and pygame.sprite.collide_mask(self, i):
                     print(1)
                     if abs(i.rect.top - self.rect.bottom) < 5:
@@ -158,6 +159,10 @@ def game(players=1, level=1):
                     Tile('empty_small', i.x, i.y)
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
                     i.kill()
+                elif str(i.tile_type) == 'water' and pygame.sprite.collide_mask(self, i):
+                    pass
+                elif str(i.tile_type) == 'leaves' and pygame.sprite.collide_mask(self, i):
+                    pass
                 elif str(i.tile_type) == 'fort' and pygame.sprite.collide_mask(self, i):
                     self.kill()
                     if self.sender == 1:
@@ -302,8 +307,10 @@ def game(players=1, level=1):
                                 self.direction = 'up'
                             elif dir == 3:
                                 self.direction = 'right'
-                if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor') and \
-                        pygame.sprite.collide_mask(self, i):
+                if (str(i.tile_type) == 'wall' or
+                    str(i.tile_type) == 'armor' or
+                    str(i.tile_type) == 'water') \
+                        and pygame.sprite.collide_mask(self, i):
                     dir = random.randint(1, 5)
                     if self.direction == 'up':
                         if dir == 1:
@@ -435,7 +442,7 @@ def game(players=1, level=1):
     player_image = load_image('player_tank.png')
     enemy_image = load_image('enemy_tank.png')
     MAX_ENEMIES = 5
-    MAX_WHOLE = 15
+    MAX_WHOLE = 1
     enemy_spawned = 0
     tile_width, tile_height = 48, 24
     # основной персонаж
@@ -452,6 +459,14 @@ def game(players=1, level=1):
         player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('map.txt'))
     elif level == 2:
         player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('second lvl.txt'))
+    elif level == 3:
+        player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('third lvl.txt'))
+    elif level == 4:
+        player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('fourth lvl.txt'))
+    elif level == 5:
+        player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('fifth lvl.txt'))
+    else:
+        return 0
     clock = pygame.time.Clock()
     move_left = False
     move_right = False
@@ -563,10 +578,12 @@ def game(players=1, level=1):
         if coop:
             if player.kills + player2.kills >= MAX_WHOLE:
                 move.stop()
-                victory(coop)
+                level += 1
+                victory(2, level)
         else:
             if player.kills >= MAX_WHOLE:
-                victory(coop)
+                level += 1
+                victory(1, level)
         cooldown1 = 5000
         now1 = pygame.time.get_ticks()
         print(len(enemy_group))
