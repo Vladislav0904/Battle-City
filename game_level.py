@@ -403,7 +403,7 @@ def game(players=1):
                         start_2 = (x * 48, y * 24)
                 elif level[y][x] == '!':
                     Tile('fort', x, y)
-                elif level[x][y] == 'l':
+                elif level[y][x] == 'l':
                     Tile('leaves', x, y)
 
         # вернем игрока, а также размер поля в клетках
