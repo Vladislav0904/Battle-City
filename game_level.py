@@ -79,6 +79,7 @@ def game(players=1):
 
         def update(self):
             collided = []
+            print(self.rect.x, self.rect.y)
             for i in tiles_group:
                 if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor') \
                         and pygame.sprite.collide_mask(self, i):
@@ -95,6 +96,14 @@ def game(players=1):
                     if abs(i.rect.left - self.rect.right) < 5:
                         print(4)
                         collided.append('right')
+                if self.rect.x >= 600:
+                    collided.append('right')
+                if self.rect.x <= 0:
+                    collided.append('left')
+                if self.rect.y <= 0:
+                    collided.append('up')
+                if self.rect.y >= 585:
+                    collided.append('down')
             return collided
 
     class Bullet(pygame.sprite.Sprite):
