@@ -434,7 +434,7 @@ def game(players=1):
     player_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
     screen.fill((0, 0, 0))
-    player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('third lvl.txt'))
+    player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('fourth lvl.txt'))
     clock = pygame.time.Clock()
     move_left = False
     move_right = False
