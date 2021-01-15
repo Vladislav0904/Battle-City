@@ -79,8 +79,6 @@ def game(players=1):
 
         def update(self):
             collided = []
-            if self.lives <= 0:
-                self.is_Dead = True
             for i in tiles_group:
                 if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor') \
                         and pygame.sprite.collide_mask(self, i):
@@ -183,7 +181,7 @@ def game(players=1):
                     i.kill()
                     player.cool_down = False
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
-                    enemy.is_dead = True
+                    # enemy.is_dead = True
                     if self.sender == 1:
                         player.cool_down = False
                     elif self.sender == 2:
@@ -228,18 +226,39 @@ def game(players=1):
                 self.kill()
 
     class Enemy(pygame.sprite.Sprite):
-        def __init__(self, pos_x, pos_y, last):
-            super().__init__(enemy_group, all_sprites)
+        def __init__(self, pos_x, pos_y, pos):
+            super().__init__(all_sprites, enemy_group)
             self.image = enemy_image
-
+            if pos == 1:
+                self.direction = 'right'
+            elif pos == 2:
+                self.direction = 'left'
+                self.image = pygame.transform.rotate(enemy_image, 180)
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x, tile_height * pos_y)
-            self.last = last
             self.is_dead = False
+            self.last = 1
+            self.mask = pygame.mask.from_surface(self.image)
 
-        def shoot(self):
-            if not self.is_dead:
-                Bullet(enemy.rect.x, enemy.rect.y, 'right', 3)
+
+        # def shoot(self):
+        #     if not self.is_dead:
+        #         Bullet(enemy.rect.x, enemy.rect.y, 'right', 3)
+
+        def update(self):
+                for i in tiles_group:
+                    if (str(i.tile_type) == 'empty' or str(i.tile_type) == 'empty_small') and \
+                            pygame.sprite.collide_mask(self, i):
+                        if self.direction == 'up':
+                            self.rect.y -= 4
+                        elif self.direction == 'down':
+                            self.rect.y += 4
+                        elif self.direction == 'right':
+                            self.rect.x += 1
+                        elif self.direction == 'left':
+                            self.rect.x -= 1
+
+
 
     def generate_level(level):
         new_player, x, y = None, None, None
@@ -294,7 +313,8 @@ def game(players=1):
     move_right = False
     move_up = False
     move_down = False
-    enemy = Enemy(1, 1, last)
+    last1 = 1
+    last2 = 1
     move_left2 = False
     move_right2 = False
     move_up2 = False
@@ -398,12 +418,21 @@ def game(players=1):
                 direction2 = 'down'
         cooldown = 1000
         now = pygame.time.get_ticks()
-        if now - enemy.last >= cooldown:
-            enemy.last = now
-            enemy.shoot()
+        # if now - last1 >= cooldown:
+            # last1 = now
+            # enemy.shoot()
+        cooldown1 = 5000
+        now1 = pygame.time.get_ticks()
+        if now1 - last1 >= cooldown1:
+            last1 = now1
+            if random.randint(1, 2) == 1:
+                Enemy(1, 0, 1)
+            else:
+                Enemy(12, 0, 2)
         all_sprites.draw(screen)
         all_sprites.update()
         player_group.draw(screen)
+        enemy_group.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
 
