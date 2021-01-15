@@ -157,7 +157,10 @@ def game(players=1):
                 elif str(i.tile_type) != 'empty' and str(i.tile_type) != 'empty_small' \
                         and pygame.sprite.collide_mask(self, i):
                     self.kill()
-                    player.cool_down = False
+                    if self.sender == 1:
+                        player.cool_down = False
+                    elif self.sender == 2:
+                        player2.cool_down = False
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
             if self.rect.y < -10 or self.rect.x < -10 or self.rect.x > 850 or self.rect.y > 650:
                 self.kill()
@@ -214,6 +217,7 @@ def game(players=1):
         def __init__(self, pos_x, pos_y, last):
             super().__init__(enemy_group, all_sprites)
             self.image = enemy_image
+
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x, tile_height * pos_y)
             self.last = last
