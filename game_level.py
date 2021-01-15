@@ -405,6 +405,8 @@ def game(players=1):
                     Tile('fort', x, y)
                 elif level[y][x] == 'l':
                     Tile('leaves', x, y)
+                elif level[y][x] == 'w':
+                    Tile('water', x, y)
 
         # вернем игрока, а также размер поля в клетках
         return new_player, x, y, second_player, start_1, start_2
@@ -415,7 +417,8 @@ def game(players=1):
         'empty_small': load_image('empty_small.png'),
         'armor': load_image('mesh.png'),
         'fort': load_image('fort.png'),
-        'leaves': load_image('leaves.png')
+        'leaves': load_image('leaves.png'),
+        'water': load_image('water.png')
     }
     player_image = load_image('player_tank.png')
     enemy_image = load_image('enemy_tank.png')
@@ -431,7 +434,7 @@ def game(players=1):
     player_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
     screen.fill((0, 0, 0))
-    player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('second lvl.txt'))
+    player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('third lvl.txt'))
     clock = pygame.time.Clock()
     move_left = False
     move_right = False
