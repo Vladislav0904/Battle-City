@@ -29,7 +29,7 @@ def load_image(name, color_key=None):
 
 
 def load_level(filename):
-    filename = os.path.join('data/assets', filename)
+    filename = os.path.join('data/assets/', filename)
     # читаем уровень, убирая символы перевода строки
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
@@ -195,8 +195,10 @@ def game(players=1):
                         i.rect.x = start_2[0]
                         i.rect.y = start_2[1]
                     i.lives -= 1
-                    print(i.lives)
-                    break
+                    if i.lives < 0:
+                        i.is_Dead = True
+                        if not coop:
+                            game_over()
 
     class AnimatedSprite(pygame.sprite.Sprite):
         def __init__(self, sheet, columns, rows, x, y):
@@ -291,20 +293,20 @@ def game(players=1):
                                 self.direction = 'right'
                 if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor') and \
                         pygame.sprite.collide_mask(self, i):
-                    dir = random.randint(1, 3)
+                    dir = random.randint(1, 5)
                     if self.direction == 'up':
                         if dir == 1:
                             self.direction = 'down'
                         elif dir == 2:
                             self.direction = 'left'
-                        elif dir == 3:
+                        elif dir == 3 or dir == 5:
                             self.direction = 'right'
                     elif self.direction == 'down':
                         if dir == 1:
                             self.direction = 'up'
                         elif dir == 2:
                             self.direction = 'left'
-                        elif dir == 3:
+                        elif dir == 3 or dir == 5:
                             self.direction = 'right'
                     elif self.direction == 'right':
                         if dir == 1:
@@ -318,10 +320,11 @@ def game(players=1):
                             self.direction = 'down'
                         elif dir == 2:
                             self.direction = 'up'
-                        elif dir == 3:
+                        elif dir == 3 or dir == 5:
                             self.direction = 'right'
             for enemy in enemy_group:
                 if pygame.sprite.collide_mask(self, enemy) and self != enemy:
+                    dir = random.randint(1, 3)
                     if self.direction == 'up':
                         if dir == 1:
                             self.direction = 'down'
@@ -383,6 +386,8 @@ def game(players=1):
             for x in range(len(level[y])):
                 if level[y][x] == '.':
                     Tile('empty', x, y)
+                elif level[y][x] == 's':
+                    Tile('empty_small', x, y)
                 elif level[y][x] == '#':
                     Tile('wall', x, y)
                 elif level[y][x] == '*':
@@ -425,7 +430,8 @@ def game(players=1):
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
-    player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('map.txt'))
+    screen.fill((0, 0, 0))
+    player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('second lvl.txt'))
     clock = pygame.time.Clock()
     move_left = False
     move_right = False
