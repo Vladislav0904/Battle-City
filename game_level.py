@@ -10,8 +10,18 @@ def terminate():
     sys.exit()
 
 
-def game_is_over():
-    game_over()
+def game_is_over(pl1, pl2, multi):
+    if multi:
+        if pl1.is_Dead and pl2.is_Dead:
+            game_over()
+    elif not multi:
+        if pl1.is_Dead:
+            game_over()
+
+
+def victory(coop):
+    pass
+    game(coop, 2)
 
 
 def load_image(name, color_key=None):
@@ -46,7 +56,7 @@ def load_sound(filename):
     return sound
 
 
-def game(players=1):
+def game(players=1, level=1):
     direction = 'up'
     direction2 = 'up'
     last = 1
@@ -76,6 +86,7 @@ def game(players=1):
             self.cool_down = False
             self.lives = 3
             self.is_Dead = False
+            self.kills = 0
 
         def update(self):
             collided = []
@@ -179,13 +190,14 @@ def game(players=1):
                 if pygame.sprite.collide_mask(self, i) and self.sender != 3:
                     self.kill()
                     i.kill()
-                    player.cool_down = False
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
-                    # enemy.is_dead = True
+                    i.is_dead = True
                     if self.sender == 1:
                         player.cool_down = False
+                        player.kills += 1
                     elif self.sender == 2:
                         player2.cool_down = False
+                        player2.kills += 1
             for i in player_group:
                 if pygame.sprite.collide_mask(self, i) and self.sender != 1 and self.sender != 2:
                     if i == player:
@@ -195,10 +207,9 @@ def game(players=1):
                         i.rect.x = start_2[0]
                         i.rect.y = start_2[1]
                     i.lives -= 1
-                    if i.lives < 0:
-                        i.is_Dead = True
-                        if not coop:
-                            game_over()
+                if i.lives < 0:
+                    i.is_Dead = True
+                    game_is_over(player, player2, coop)
 
     class AnimatedSprite(pygame.sprite.Sprite):
         def __init__(self, sheet, columns, rows, x, y):
@@ -402,6 +413,7 @@ def game(players=1):
                         second_player = Player(x, y)
                         start_2 = (x * 48, y * 24)
                 elif level[y][x] == '!':
+                    Tile('empty_small', x, y)
                     Tile('fort', x, y)
                 elif level[y][x] == 'l':
                     Tile('leaves', x, y)
@@ -423,6 +435,8 @@ def game(players=1):
     player_image = load_image('player_tank.png')
     enemy_image = load_image('enemy_tank.png')
     MAX_ENEMIES = 5
+    MAX_WHOLE = 15
+    enemy_spawned = 0
     tile_width, tile_height = 48, 24
     # основной персонаж
     player = None
@@ -434,7 +448,10 @@ def game(players=1):
     player_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
     screen.fill((0, 0, 0))
-    player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('fourth lvl.txt'))
+    if level == 1:
+        player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('map.txt'))
+    elif level == 2:
+        player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('second lvl.txt'))
     clock = pygame.time.Clock()
     move_left = False
     move_right = False
@@ -543,15 +560,23 @@ def game(players=1):
                 player2.rect.y += 4
                 player2.image = pygame.transform.rotate(player_image, 180)
                 direction2 = 'down'
+        if coop:
+            if player.kills + player2.kills >= MAX_WHOLE:
+                move.stop()
+                victory(coop)
+        else:
+            if player.kills >= MAX_WHOLE:
+                victory(coop)
         cooldown1 = 5000
         now1 = pygame.time.get_ticks()
         print(len(enemy_group))
-        if now1 - last1 >= cooldown1 and len(enemy_group) < MAX_ENEMIES:
+        if now1 - last1 >= cooldown1 and len(enemy_group) < MAX_ENEMIES and enemy_spawned <= MAX_WHOLE:
             last1 = now1
             if random.randint(1, 2) == 1:
                 Enemy(1, 0, 1)
             else:
                 Enemy(12, 0, 2)
+            enemy_spawned += 1
         all_sprites.draw(screen)
         all_sprites.update()
         player_group.draw(screen)
