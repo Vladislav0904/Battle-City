@@ -47,8 +47,6 @@ def load_sound(filename):
 
 
 def game(players=1):
-    global start1
-    global start2
     direction = 'up'
     direction2 = 'up'
     last = 1
@@ -77,10 +75,12 @@ def game(players=1):
             self.mask = pygame.mask.from_surface(self.image)
             self.cool_down = False
             self.lives = 3
+            self.is_Dead = False
 
         def update(self):
             collided = []
-            print(self.rect.x, self.rect.y)
+            if self.lives <= 0:
+                self.is_Dead = True
             for i in tiles_group:
                 if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor') \
                         and pygame.sprite.collide_mask(self, i):
@@ -189,10 +189,15 @@ def game(players=1):
                     elif self.sender == 2:
                         player2.cool_down = False
             for i in player_group:
-                if pygame.sprite.collide_mask(self, i):
-                    print(i.lives)
-                    i.rect = i.rect.move(start1[0], start1[1])
+                if pygame.sprite.collide_mask(self, i) and self.sender != 1 and self.sender != 2:
+                    if i == player:
+                        i.rect.x = start_1[0]
+                        i.rect.y = start_1[1]
+                    elif i == player2:
+                        i.rect.x = start_2[0]
+                        i.rect.y = start_2[1]
                     i.lives -= 1
+                    print(i.lives)
                     break
 
     class AnimatedSprite(pygame.sprite.Sprite):
@@ -251,12 +256,12 @@ def game(players=1):
                 elif level[y][x] == '@':
                     Tile('empty', x, y)
                     new_player = Player(x, y)
-                    start_1 = x, y
+                    start_1 = (x * 48, y * 24)
                 elif level[y][x] == '/':
                     Tile('empty', x, y)
                     if coop:
                         second_player = Player(x, y)
-                        start_2 = x, y
+                        start_2 = (x * 48, y * 24)
                 elif level[y][x] == '!':
                     Tile('fort', x, y)
 
@@ -283,7 +288,7 @@ def game(players=1):
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
-    player, level_x, level_y, player2, start1, start2 = generate_level(load_level('map.txt'))
+    player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('map.txt'))
     clock = pygame.time.Clock()
     move_left = False
     move_right = False
@@ -304,18 +309,18 @@ def game(players=1):
             elif event.type == pygame.KEYDOWN:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
-                    if not player.cool_down:
+                    if not player.cool_down and not player.is_Dead:
                         Bullet(player.rect.x, player.rect.y, direction, 1)
                         shot = load_sound('shot.wav')
                         shot.play()
                         player.cool_down = True
-                if keys[pygame.K_RIGHT]:
+                if keys[pygame.K_RIGHT] and not player.is_Dead:
                     move_right = True
-                if keys[pygame.K_LEFT]:
+                if keys[pygame.K_LEFT] and not player.is_Dead:
                     move_left = True
-                if keys[pygame.K_UP]:
+                if keys[pygame.K_UP] and not player.is_Dead:
                     move_up = True
-                if keys[pygame.K_DOWN]:
+                if keys[pygame.K_DOWN] and not player.is_Dead:
                     move_down = True
             elif event.type == pygame.KEYUP:
                 keys = pygame.key.get_pressed()
@@ -329,22 +334,22 @@ def game(players=1):
                     move_down = False
             elif coop:
                 if event.type == pygame.JOYAXISMOTION:
-                    if pygame.joystick.Joystick(0).get_axis(0) > 0.5:
+                    if pygame.joystick.Joystick(0).get_axis(0) > 0.5 and not player2.is_Dead:
                         move_right2 = True
-                    elif pygame.joystick.Joystick(0).get_axis(0) < -0.5:
+                    elif pygame.joystick.Joystick(0).get_axis(0) < -0.5 and not player2.is_Dead:
                         move_left2 = True
                     else:
                         move_left2 = False
                         move_right2 = False
-                    if pygame.joystick.Joystick(0).get_axis(1) > 0.5:
+                    if pygame.joystick.Joystick(0).get_axis(1) > 0.5 and not player2.is_Dead:
                         move_down2 = True
-                    elif pygame.joystick.Joystick(0).get_axis(1) < -0.5:
+                    elif pygame.joystick.Joystick(0).get_axis(1) < -0.5 and not player2.is_Dead:
                         move_up2 = True
                     else:
                         move_up2 = False
                         move_down2 = False
                 elif event.type == pygame.JOYBUTTONDOWN:
-                    if pygame.joystick.Joystick(0).get_button(1):
+                    if pygame.joystick.Joystick(0).get_button(1) and not player2.is_Dead:
                         if not player2.cool_down:
                             Bullet(player2.rect.x, player2.rect.y, direction2, 2)
                             shot = load_sound('shot.wav')
