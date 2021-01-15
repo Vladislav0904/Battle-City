@@ -176,7 +176,7 @@ def game(players=1):
                 elif self.sender == 2:
                     player2.cool_down = False
             for i in enemy_group:
-                if pygame.sprite.collide_mask(self, i):
+                if pygame.sprite.collide_mask(self, i) and self.sender != 3:
                     self.kill()
                     i.kill()
                     player.cool_down = False
@@ -240,25 +240,140 @@ def game(players=1):
             self.last = 1
             self.mask = pygame.mask.from_surface(self.image)
 
-
-        # def shoot(self):
-        #     if not self.is_dead:
-        #         Bullet(enemy.rect.x, enemy.rect.y, 'right', 3)
+        def shoot(self):
+            if not self.is_dead:
+                Bullet(self.rect.x, self.rect.y, self.direction, 3)
 
         def update(self):
-                for i in tiles_group:
-                    if (str(i.tile_type) == 'empty' or str(i.tile_type) == 'empty_small') and \
-                            pygame.sprite.collide_mask(self, i):
-                        if self.direction == 'up':
-                            self.rect.y -= 4
-                        elif self.direction == 'down':
-                            self.rect.y += 4
-                        elif self.direction == 'right':
-                            self.rect.x += 1
-                        elif self.direction == 'left':
-                            self.rect.x -= 1
+            collided = []
+            if self.rect.x >= 600:
+                print('gay')
+                collided.append('right')
+            if self.rect.x <= 0:
+                collided.append('left')
+                print('gay')
+            if self.rect.y <= 0:
+                collided.append('up')
+            if self.rect.y >= 585:
+                collided.append('down')
+            for i in tiles_group:
+                if (str(i.tile_type) == 'empty' or str(i.tile_type) == 'empty_small') and \
+                        pygame.sprite.collide_mask(self, i):
+                    dir = random.randint(1, 3)
+                    for j in collided:
+                        if 'up' in j:
+                            if dir == 1:
+                                self.direction = 'down'
+                            elif dir == 2:
+                                self.direction = 'left'
+                            elif dir == 3:
+                                self.direction = 'right'
+                        elif 'down' in j:
+                            if dir == 1:
+                                self.direction = 'up'
+                            elif dir == 2:
+                                self.direction = 'left'
+                            elif dir == 3:
+                                self.direction = 'right'
+                        elif 'right' in j:
+                            if dir == 1:
+                                self.direction = 'down'
+                            elif dir == 2:
+                                self.direction = 'left'
+                            elif dir == 3:
+                                self.direction = 'up'
+                        elif 'left' in j:
+                            if dir == 1:
+                                self.direction = 'down'
+                            elif dir == 2:
+                                self.direction = 'up'
+                            elif dir == 3:
+                                self.direction = 'right'
+                if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor') and \
+                        pygame.sprite.collide_mask(self, i):
+                    dir = random.randint(1, 3)
+                    if self.direction == 'up':
+                        if dir == 1:
+                            self.direction = 'down'
+                        elif dir == 2:
+                            self.direction = 'left'
+                        elif dir == 3:
+                            self.direction = 'right'
+                    elif self.direction == 'down':
+                        if dir == 1:
+                            self.direction = 'up'
+                        elif dir == 2:
+                            self.direction = 'left'
+                        elif dir == 3:
+                            self.direction = 'right'
+                    elif self.direction == 'right':
+                        if dir == 1:
+                            self.direction = 'down'
+                        elif dir == 2:
+                            self.direction = 'left'
+                        elif dir == 3:
+                            self.direction = 'up'
+                    elif self.direction == 'left':
+                        if dir == 1:
+                            self.direction = 'down'
+                        elif dir == 2:
+                            self.direction = 'up'
+                        elif dir == 3:
+                            self.direction = 'right'
+            for enemy in enemy_group:
+                if pygame.sprite.collide_mask(self, enemy) and self != enemy:
+                    if self.direction == 'up':
+                        if dir == 1:
+                            self.direction = 'down'
+                        elif dir == 2:
+                            self.direction = 'left'
+                        elif dir == 3:
+                            self.direction = 'right'
+                    elif self.direction == 'down':
+                        if dir == 1:
+                            self.direction = 'up'
+                        elif dir == 2:
+                            self.direction = 'left'
+                        elif dir == 3:
+                            self.direction = 'right'
+                    elif self.direction == 'right':
+                        if dir == 1:
+                            self.direction = 'down'
+                        elif dir == 2:
+                            self.direction = 'left'
+                        elif dir == 3:
+                            self.direction = 'up'
+                    elif self.direction == 'left':
+                        if dir == 1:
+                            self.direction = 'down'
+                        elif dir == 2:
+                            self.direction = 'up'
+                        elif dir == 3:
+                            self.direction = 'right'
+            self.change_rotation(self.direction)
+            if self.direction == 'up':
+                self.rect.y -= 3
+            elif self.direction == 'down':
+                self.rect.y += 3
+            elif self.direction == 'right':
+                self.rect.x += 3
+            elif self.direction == 'left':
+                self.rect.x -= 3
+            cool_down_shot = 1500
+            now = pygame.time.get_ticks()
+            if now - self.last >= cool_down_shot:
+                self.last = now
+                self.shoot()
 
-
+        def change_rotation(self, rot):
+            if rot == 'up':
+                self.image = pygame.transform.rotate(enemy_image, 90)
+            elif rot == 'down':
+                self.image = pygame.transform.rotate(enemy_image, -90)
+            elif rot == 'left':
+                self.image = pygame.transform.rotate(enemy_image, 180)
+            elif rot == 'right':
+                self.image = enemy_image
 
     def generate_level(level):
         new_player, x, y = None, None, None
@@ -296,7 +411,7 @@ def game(players=1):
     }
     player_image = load_image('player_tank.png')
     enemy_image = load_image('enemy_tank.png')
-
+    MAX_ENEMIES = 5
     tile_width, tile_height = 48, 24
     # основной персонаж
     player = None
@@ -416,14 +531,10 @@ def game(players=1):
                 player2.rect.y += 4
                 player2.image = pygame.transform.rotate(player_image, 180)
                 direction2 = 'down'
-        cooldown = 1000
-        now = pygame.time.get_ticks()
-        # if now - last1 >= cooldown:
-            # last1 = now
-            # enemy.shoot()
         cooldown1 = 5000
         now1 = pygame.time.get_ticks()
-        if now1 - last1 >= cooldown1:
+        print(len(enemy_group))
+        if now1 - last1 >= cooldown1 and len(enemy_group) < MAX_ENEMIES:
             last1 = now1
             if random.randint(1, 2) == 1:
                 Enemy(1, 0, 1)
