@@ -80,7 +80,6 @@ def game(players=1):
 
         def update(self):
             collided = []
-            print(self.rect.x, self.rect.y)
             for i in tiles_group:
                 if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor') \
                         and pygame.sprite.collide_mask(self, i):
@@ -189,9 +188,14 @@ def game(players=1):
                     elif self.sender == 2:
                         player2.cool_down = False
             for i in player_group:
-                if pygame.sprite.collide_mask(self, i):
+                if pygame.sprite.collide_mask(self, i) and self.sender != 1 and self.sender != 2:
                     print(i.lives)
-                    i.rect = i.rect.move(start1[0], start1[1])
+                    if i == player:
+                        i.rect.x = start_1[0]
+                        i.rect.y = start_1[1]
+                    elif i == player2:
+                        i.rect.x = start_2[0]
+                        i.rect.y = start_2[1]
                     i.lives -= 1
                     break
 
@@ -251,12 +255,12 @@ def game(players=1):
                 elif level[y][x] == '@':
                     Tile('empty', x, y)
                     new_player = Player(x, y)
-                    start_1 = x, y
+                    start_1 = (x * 48, y * 24)
                 elif level[y][x] == '/':
                     Tile('empty', x, y)
                     if coop:
                         second_player = Player(x, y)
-                        start_2 = x, y
+                        start_2 = (x * 48, y * 24)
                 elif level[y][x] == '!':
                     Tile('fort', x, y)
 
@@ -283,7 +287,7 @@ def game(players=1):
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
-    player, level_x, level_y, player2, start1, start2 = generate_level(load_level('map.txt'))
+    player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('map.txt'))
     clock = pygame.time.Clock()
     move_left = False
     move_right = False
