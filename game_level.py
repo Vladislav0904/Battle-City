@@ -523,7 +523,8 @@ def game(players=1, level=1):
                             shot.play()
                             player2.cool_down = True
 
-        if move_right or move_left or move_down or move_up:
+        if move_right or move_left or move_down or move_up\
+                or move_right2 or move_left2 or move_down2 or move_up2:
             if i <= 1:
                 move.play()
                 i += 1
