@@ -4,6 +4,7 @@ import sys
 import random
 from game_over import game_over
 import game_stage
+import pygame_gui
 
 
 def terminate():
@@ -54,6 +55,43 @@ def load_sound(filename):
     filename = os.path.join('data/sounds', filename)
     sound = pygame.mixer.Sound(filename)
     return sound
+
+
+class GameUI:
+    def __init__(self, mode, hp1, remain, level, hp2=0):
+        self.font = pygame.font.Font('./data/fonts/PixelEmulator-xq08.ttf', 24)
+        self.font2 = pygame.font.Font('./data/fonts/PixelEmulator-xq08.ttf', 30)
+        self.image = pygame.Surface((200, 600))
+        self.image.fill(pygame.Color(134, 136, 138))
+        self.tank_image = load_image('gui_tank.png')
+        self.flag_image = load_image('gui_flag.png')
+        self.lives_image = load_image('gui_lives.png')
+        self.mode = mode
+        self.stage = level
+        self.hp1 = hp1
+        self.hp2 = hp2
+        self.remain = remain
+        self.coord_xl = 680
+        self.coord_xr = 705
+        self.coord_y = 10
+
+    def render(self, screen):
+        screen.blit(self.image, (624, 0))
+        screen.blit(self.font2.render("IP", False, 'black'), [670, 270])
+        screen.blit(self.lives_image, [670, 305])
+        screen.blit(self.font.render(str(self.hp1), False, 'black'), [695, 300])
+        screen.blit(self.flag_image, (660, 450))
+        screen.blit(self.font.render(str(self.stage), False, 'black'), [690, 480])
+        if self.mode:
+            screen.blit(self.font.render("IIP", False, 'black'), [670, 340])
+            screen.blit(self.font.render(str(self.hp2), False, 'black'), [695, 360])
+            screen.blit(self.lives_image, [670, 365])
+        for i in range(self.remain):
+            if i % 2 == 0:
+                screen.blit(self.tank_image, (self.coord_xl, self.coord_y))
+            else:
+                screen.blit(self.tank_image, (self.coord_xr, self.coord_y))
+                self.coord_y += 30
 
 
 def game(players=1, level=1):
@@ -201,7 +239,8 @@ def game(players=1, level=1):
                     elif i == player2:
                         i.rect.x = start_2[0]
                         i.rect.y = start_2[1]
-                    i.lives -= 1
+                    if not i.is_Dead:
+                        i.lives -= 1
                 if i.lives < 0:
                     i.is_Dead = True
                     game_is_over(player, player2, coop)
@@ -431,6 +470,7 @@ def game(players=1, level=1):
     enemy_image = load_image('enemy_tank.png')
     MAX_ENEMIES = 5
     MAX_WHOLE = 15
+    enemies_remaining = 15
     enemy_spawned = 0
     tile_width, tile_height = 48, 24
     # основной персонаж
@@ -523,7 +563,7 @@ def game(players=1, level=1):
                             shot.play()
                             player2.cool_down = True
 
-        if move_right or move_left or move_down or move_up\
+        if move_right or move_left or move_down or move_up \
                 or move_right2 or move_left2 or move_down2 or move_up2:
             if i <= 1:
                 move.play()
@@ -575,16 +615,22 @@ def game(players=1, level=1):
                 victory(1, level)
         cooldown1 = 5000
         now1 = pygame.time.get_ticks()
-        if now1 - last1 >= cooldown1 and len(enemy_group) < MAX_ENEMIES and enemy_spawned <= MAX_WHOLE:
+        if now1 - last1 >= cooldown1 and len(enemy_group) < MAX_ENEMIES and enemy_spawned < MAX_WHOLE:
             last1 = now1
             if random.randint(1, 2) == 1:
                 Enemy(1, 0, 1)
             else:
                 Enemy(12, 0, 2)
             enemy_spawned += 1
+            enemies_remaining -= 1
         all_sprites.draw(screen)
         all_sprites.update()
         player_group.draw(screen)
+        if coop:
+            hi = GameUI(coop, player.lives, enemies_remaining, level, player2.lives)
+        else:
+            hi = GameUI(coop, player.lives, enemies_remaining, level)
+        hi.render(screen)
         enemy_group.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
