@@ -21,7 +21,7 @@ def game_is_over(pl1, pl2, multi):
             game_over()
 
 
-def victory(coop, level):
+def victory(coop, level, lives1, lives2):
     game_stage.stage_load(coop, level)
 
 
@@ -115,9 +115,9 @@ def game(players=1, level=1):
             self.mask = pygame.mask.from_surface(self.image)
 
     class Player(pygame.sprite.Sprite):
-        def __init__(self, pos_x, pos_y):
+        def __init__(self, pos_x, pos_y, image):
             super().__init__(player_group, all_sprites)
-            self.image = player_image
+            self.image = image
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x + 15, tile_height * pos_y + 5)
             self.mask = pygame.mask.from_surface(self.image)
@@ -439,12 +439,12 @@ def game(players=1, level=1):
                     Tile('armor', x, y)
                 elif level[y][x] == '@':
                     Tile('empty', x, y)
-                    new_player = Player(x, y)
+                    new_player = Player(x, y, player_image)
                     start_1 = (x * 48, y * 24)
                 elif level[y][x] == '/':
                     Tile('empty', x, y)
                     if coop:
-                        second_player = Player(x, y)
+                        second_player = Player(x, y, player2_image)
                         start_2 = (x * 48, y * 24)
                 elif level[y][x] == '!':
                     Tile('empty_small', x, y)
@@ -467,6 +467,7 @@ def game(players=1, level=1):
         'water': load_image('water.png')
     }
     player_image = load_image('player_tank.png')
+    player2_image = load_image('player2_tank.png')
     enemy_image = load_image('enemy_tank.png')
     MAX_ENEMIES = 5
     MAX_WHOLE = 15
@@ -590,19 +591,19 @@ def game(players=1, level=1):
         if coop:
             if move_right2 and 'right' not in player2.update():
                 player2.rect.x += 4
-                player2.image = pygame.transform.rotate(player_image, -90)
+                player2.image = pygame.transform.rotate(player2_image, -90)
                 direction2 = 'right'
             elif move_left2 and 'left' not in player2.update():
                 player2.rect.x -= 4
-                player2.image = pygame.transform.rotate(player_image, 90)
+                player2.image = pygame.transform.rotate(player2_image, 90)
                 direction2 = 'left'
             elif move_up2 and 'up' not in player2.update():
                 player2.rect.y -= 4
-                player2.image = player_image
+                player2.image = player2_image
                 direction2 = 'up'
             elif move_down2 and 'down' not in player2.update():
                 player2.rect.y += 4
-                player2.image = pygame.transform.rotate(player_image, 180)
+                player2.image = pygame.transform.rotate(player2_image, 180)
                 direction2 = 'down'
         if coop:
             if player.kills + player2.kills >= MAX_WHOLE:
