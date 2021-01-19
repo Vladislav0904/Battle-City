@@ -13,11 +13,13 @@ clock = pygame.time.Clock()
 pygame.display.set_caption('Battle City')
 
 
+# выход из игры
 def terminate():
     pygame.quit()
     sys.exit()
 
 
+# загрузка главного меню
 def load_main_menu(screen):
     screen.fill((0, 0, 0))
     font = pygame.font.Font('./data/fonts/BRICK.ttf', 100)
@@ -30,11 +32,11 @@ def load_main_menu(screen):
     screen.blit(text, (text_x, text_y))
     screen.blit(text1, (text_x1, text_y1))
     manager = pygame_gui.UIManager((width, height), os.path.join('data', 'main_menu.json'))
-    f_player_btn = pygame_gui.elements.UIButton(
+    f_player_btn = pygame_gui.elements.UIButton(  # кнопка "1 PLAYER"
         relative_rect=pygame.Rect((width // 2 - 75, 300), (150, 50)),
         text='1 PLAYER',
         manager=manager)
-    s_player_btn = pygame_gui.elements.UIButton(
+    s_player_btn = pygame_gui.elements.UIButton(  # кнопка "2 PLAYER"
         relative_rect=pygame.Rect((width // 2 - 75, 350), (150, 50)),
         text='2 PLAYER',
         manager=manager)

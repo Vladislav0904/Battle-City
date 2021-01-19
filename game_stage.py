@@ -3,12 +3,14 @@ import os
 import game_level
 
 
+# загрузка музыки в игру
 def load_sound(filename):
     filename = os.path.join('data/sounds', filename)
     sound = pygame.mixer.Sound(filename)
     return sound
 
 
+# создание загрузочного экрана между уровнями
 def stage_load(is_coop, number):
     if number != 6:
         pygame.init()

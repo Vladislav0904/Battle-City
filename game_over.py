@@ -12,11 +12,13 @@ clock = pygame.time.Clock()
 pygame.display.set_caption('Battle City')
 
 
+# выход из игры
 def terminate():
     pygame.quit()
     sys.exit()
 
 
+# создаёт окно завершения игры
 def game_over():
     font = pygame.font.Font('./data/fonts/BRICK.ttf', 100)
     text = font.render("GAME", True, (211, 71, 46))

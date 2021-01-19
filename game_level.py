@@ -7,11 +7,13 @@ import game_stage
 import pygame_gui
 
 
+# выход из игры
 def terminate():
     pygame.quit()
     sys.exit()
 
 
+# заканчивает игру при смерти игрока(игроков)
 def game_is_over(pl1, pl2, multi):
     if multi:
         if pl1.is_Dead and pl2.is_Dead:
@@ -21,10 +23,11 @@ def game_is_over(pl1, pl2, multi):
             game_over()
 
 
-def victory(coop, level, lives1, lives2):
+def victory(coop, level):
     game_stage.stage_load(coop, level)
 
 
+# загрузка любого изображения
 def load_image(name, color_key=None):
     fullname = os.path.join('data/assets', name)
     image = pygame.image.load(fullname)
@@ -39,6 +42,7 @@ def load_image(name, color_key=None):
     return image
 
 
+# загрузка карты уровня(txt файл)
 def load_level(filename):
     filename = os.path.join('data/assets/', filename)
     # читаем уровень, убирая символы перевода строки
@@ -51,6 +55,7 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
+# загрузка музыки
 def load_sound(filename):
     filename = os.path.join('data/sounds', filename)
     sound = pygame.mixer.Sound(filename)
@@ -58,6 +63,7 @@ def load_sound(filename):
 
 
 class GameUI:
+    # прогрузка шрифтов, изображений(сбор информации, которая находится в правой менюшке)
     def __init__(self, mode, hp1, remain, level, hp2=0):
         self.font = pygame.font.Font('./data/fonts/PixelEmulator-xq08.ttf', 24)
         self.font2 = pygame.font.Font('./data/fonts/PixelEmulator-xq08.ttf', 30)
@@ -76,6 +82,7 @@ class GameUI:
         self.coord_y = 10
 
     def render(self, screen):
+        # отрисовка постоянных графических элементов
         screen.blit(self.image, (624, 0))
         screen.blit(self.font2.render("IP", False, 'black'), [670, 270])
         screen.blit(self.lives_image, [670, 305])
@@ -83,10 +90,11 @@ class GameUI:
         screen.blit(self.flag_image, (660, 450))
         screen.blit(self.font.render(str(self.stage), False, 'black'), [690, 480])
         if self.mode:
+            # добавление второго игрока( если выбран режим "2 PLAYER"
             screen.blit(self.font.render("IIP", False, 'black'), [670, 340])
             screen.blit(self.font.render(str(self.hp2), False, 'black'), [695, 360])
             screen.blit(self.lives_image, [670, 365])
-        for i in range(self.remain):
+        for i in range(self.remain):  # показывает кол - во оставшихся игроков
             if i % 2 == 0:
                 screen.blit(self.tank_image, (self.coord_xl, self.coord_y))
             else:
@@ -94,6 +102,7 @@ class GameUI:
                 self.coord_y += 30
 
 
+# основной процесс игры
 def game(players=1, level=1):
     direction = 'up'
     direction2 = 'up'
@@ -103,6 +112,7 @@ def game(players=1, level=1):
     elif players == 2:
         coop = True
 
+    # создание объекта клеточного поля
     class Tile(pygame.sprite.Sprite):
         def __init__(self, tile_type, pos_x, pos_y):
             super().__init__(tiles_group, all_sprites)
@@ -114,6 +124,7 @@ def game(players=1, level=1):
                 tile_width * pos_x, tile_height * pos_y)
             self.mask = pygame.mask.from_surface(self.image)
 
+    # создание танка игрока
     class Player(pygame.sprite.Sprite):
         def __init__(self, pos_x, pos_y, image):
             super().__init__(player_group, all_sprites)
@@ -126,8 +137,10 @@ def game(players=1, level=1):
             self.is_Dead = False
             self.kills = 0
 
+        # обновление состояния класса
         def update(self):
             collided = []
+            # проверка на столкновение с препятствиями
             for i in tiles_group:
                 if (str(i.tile_type) == 'wall' or str(i.tile_type) == 'armor'
                     or str(i.tile_type) == 'water') \
@@ -140,6 +153,7 @@ def game(players=1, level=1):
                         collided.append('left')
                     if abs(i.rect.left - self.rect.right) < 5:
                         collided.append('right')
+                # проверка на столкновение с границей
                 if self.rect.x >= 600:
                     collided.append('right')
                 if self.rect.x <= 0:
@@ -150,6 +164,7 @@ def game(players=1, level=1):
                     collided.append('down')
             return collided
 
+    # создание пули как отдельного объекта
     class Bullet(pygame.sprite.Sprite):
         def __init__(self, x, y, direct, sender):
             super().__init__(all_sprites)
@@ -159,6 +174,7 @@ def game(players=1, level=1):
             self.image = pygame.Surface((3, 8))
             self.image.fill(pygame.Color('gray'))
             self.rect = self.image.get_rect()
+            # задание направления пули и её поворота, в зависимости от расположения танка
             if self.direction == 'up':
                 self.rect = self.rect.move(x + 10, y)
             elif self.direction == 'down':
@@ -173,6 +189,7 @@ def game(players=1, level=1):
             self.mask = pygame.mask.from_surface(self.image)
 
         def update(self):
+            # направление пули
             if self.direction == 'up':
                 self.rect.y -= self.speed
             elif self.direction == 'down':
@@ -181,8 +198,9 @@ def game(players=1, level=1):
                 self.rect.x += self.speed
             elif self.direction == 'left':
                 self.rect.x -= self.speed
-
+            # обработка событий(прикосновение с другими объектами)
             for i in tiles_group:
+                # со стеной кирпичной
                 if str(i.tile_type) == 'wall' and pygame.sprite.collide_mask(self, i):
                     self.kill()
                     if self.sender == 1:
@@ -192,10 +210,13 @@ def game(players=1, level=1):
                     Tile('empty_small', i.x, i.y)
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
                     i.kill()
+                # с водой
                 elif str(i.tile_type) == 'water' and pygame.sprite.collide_mask(self, i):
                     pass
+                # с травой
                 elif str(i.tile_type) == 'leaves' and pygame.sprite.collide_mask(self, i):
                     pass
+                # с фортом
                 elif str(i.tile_type) == 'fort' and pygame.sprite.collide_mask(self, i):
                     self.kill()
                     if self.sender == 1:
@@ -205,6 +226,7 @@ def game(players=1, level=1):
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
                     i.kill()
                     game_over()
+                # с границей поля
                 elif str(i.tile_type) != 'empty' and str(i.tile_type) != 'empty_small' \
                         and pygame.sprite.collide_mask(self, i):
                     self.kill()
@@ -213,6 +235,7 @@ def game(players=1, level=1):
                     elif self.sender == 2:
                         player2.cool_down = False
                     explosion = AnimatedSprite(load_image("explosion.png"), 3, 1, self.rect.x - 10, self.rect.y)
+            # уничтожение пули, если она уходит за экран
             if self.rect.y < -10 or self.rect.x < -10 or self.rect.x > 850 or self.rect.y > 650:
                 self.kill()
                 if self.sender == 1:
@@ -220,6 +243,7 @@ def game(players=1, level=1):
                 elif self.sender == 2:
                     player2.cool_down = False
             for i in enemy_group:
+                # уничтожение танка врага
                 if pygame.sprite.collide_mask(self, i) and self.sender != 3:
                     self.kill()
                     i.kill()
@@ -232,6 +256,7 @@ def game(players=1, level=1):
                         player2.cool_down = False
                         player2.kills += 1
             for i in player_group:
+                # если пуля соприкасается с вашим танком, то пуля пропадает
                 if pygame.sprite.collide_mask(self, i) and self.sender != 1 and self.sender != 2:
                     if i == player:
                         i.rect.x = start_1[0]
@@ -245,6 +270,7 @@ def game(players=1, level=1):
                     i.is_Dead = True
                     game_is_over(player, player2, coop)
 
+    # создание анимаций
     class AnimatedSprite(pygame.sprite.Sprite):
         def __init__(self, sheet, columns, rows, x, y):
             super().__init__(all_sprites)
@@ -255,6 +281,7 @@ def game(players=1, level=1):
             self.rect = self.rect.move(x, y)
             self.counter = 1
 
+        # карты анимаций на кадры
         def cut_sheet(self, sheet, columns, rows):
             self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
                                     sheet.get_height() // rows)
@@ -264,6 +291,7 @@ def game(players=1, level=1):
                     self.frames.append(sheet.subsurface(pygame.Rect(
                         frame_location, self.rect.size)))
 
+        # проигрывание анимации
         def update(self):
             if self.counter <= 3:
                 self.cur_frame = (self.cur_frame + 1) % len(self.frames)
@@ -272,6 +300,7 @@ def game(players=1, level=1):
             else:
                 self.kill()
 
+    # создание искуственного интелекта
     class Enemy(pygame.sprite.Sprite):
         def __init__(self, pos_x, pos_y, pos):
             super().__init__(all_sprites, enemy_group)
@@ -287,10 +316,12 @@ def game(players=1, level=1):
             self.last = 1
             self.mask = pygame.mask.from_surface(self.image)
 
+        # стрельба ИИ(взято из класса Bullet)
         def shoot(self):
             if not self.is_dead:
                 Bullet(self.rect.x, self.rect.y, self.direction, 3)
 
+        # создаём мозг боту
         def update(self):
             collided = []
             if self.rect.x >= 600:
@@ -301,7 +332,8 @@ def game(players=1, level=1):
                 collided.append('up')
             if self.rect.y >= 585:
                 collided.append('down')
-            for i in tiles_group:
+            for i in tiles_group:  # обработка столкновения с разными препятствиями(вода,
+                # кирпичи, зелень, трава, железо)
                 if (str(i.tile_type) == 'empty' or str(i.tile_type) == 'empty_small') and \
                         pygame.sprite.collide_mask(self, i):
                     dir = random.randint(1, 3)
@@ -367,7 +399,7 @@ def game(players=1, level=1):
                             self.direction = 'up'
                         elif dir == 3 or dir == 5:
                             self.direction = 'right'
-            for enemy in enemy_group:
+            for enemy in enemy_group:  # обработка столкновения с лпугим ботом
                 if pygame.sprite.collide_mask(self, enemy) and self != enemy:
                     dir = random.randint(1, 3)
                     if self.direction == 'up':
@@ -398,6 +430,7 @@ def game(players=1, level=1):
                             self.direction = 'up'
                         elif dir == 3:
                             self.direction = 'right'
+            # движение ИИ
             self.change_rotation(self.direction)
             if self.direction == 'up':
                 self.rect.y -= 3
@@ -413,6 +446,7 @@ def game(players=1, level=1):
                 self.last = now
                 self.shoot()
 
+        # поворот картинки ИИ
         def change_rotation(self, rot):
             if rot == 'up':
                 self.image = pygame.transform.rotate(enemy_image, 90)
@@ -423,6 +457,7 @@ def game(players=1, level=1):
             elif rot == 'right':
                 self.image = enemy_image
 
+    # создание уровня по карте(txt)
     def generate_level(level):
         new_player, x, y = None, None, None
         second_player = None
@@ -484,6 +519,7 @@ def game(players=1, level=1):
     player_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
     screen.fill((0, 0, 0))
+    # загрузка определённого уровня
     if level == 1:
         player, level_x, level_y, player2, start_1, start_2 = generate_level(load_level('map.txt'))
     elif level == 2:
@@ -511,13 +547,14 @@ def game(players=1, level=1):
     move = load_sound('player_move.wav')
     move.set_volume(0.3)
     while True:
+        # перехват событий нажатия на клавиши
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:  # движение первого игрока
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
-                    if not player.cool_down and not player.is_Dead:
+                    if not player.cool_down and not player.is_Dead:  # звук выстрела
                         Bullet(player.rect.x, player.rect.y, direction, 1)
                         shot = load_sound('shot.wav')
                         shot.play()
@@ -540,6 +577,7 @@ def game(players=1, level=1):
                     move_up = False
                 if not keys[pygame.K_DOWN]:
                     move_down = False
+            # обработка событий второго игрока
             elif coop:
                 if event.type == pygame.JOYAXISMOTION:
                     if pygame.joystick.Joystick(0).get_axis(0) > 0.5 and not player2.is_Dead:
@@ -563,7 +601,7 @@ def game(players=1, level=1):
                             shot = load_sound('shot.wav')
                             shot.play()
                             player2.cool_down = True
-
+        # звуки при езде игроков
         if move_right or move_left or move_down or move_up \
                 or move_right2 or move_left2 or move_down2 or move_up2:
             if i <= 1:
@@ -572,6 +610,7 @@ def game(players=1, level=1):
         else:
             move.stop()
             i = 1
+        # движение в определённую сторону и поворот игрока
         if move_right and 'right' not in player.update():
             player.rect.x += 4
             player.image = pygame.transform.rotate(player_image, -90)
@@ -605,7 +644,7 @@ def game(players=1, level=1):
                 player2.rect.y += 4
                 player2.image = pygame.transform.rotate(player2_image, 180)
                 direction2 = 'down'
-        if coop:
+        if coop:  # переход на следующий уровень, если боты умерли
             if player.kills + player2.kills >= MAX_WHOLE:
                 move.stop()
                 level += 1
@@ -616,6 +655,7 @@ def game(players=1, level=1):
                 victory(1, level)
         cooldown1 = 5000
         now1 = pygame.time.get_ticks()
+        # спавн ботов в двух точках определённых
         if now1 - last1 >= cooldown1 and len(enemy_group) < MAX_ENEMIES and enemy_spawned < MAX_WHOLE:
             last1 = now1
             if random.randint(1, 2) == 1:
@@ -627,6 +667,7 @@ def game(players=1, level=1):
         all_sprites.draw(screen)
         all_sprites.update()
         player_group.draw(screen)
+        # вызов GUi
         if coop:
             hi = GameUI(coop, player.lives, enemies_remaining, level, player2.lives)
         else:
